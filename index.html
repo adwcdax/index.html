@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 核心适配：优化viewport，添加user-scalable=no防止缩放 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>爱心口令验证</title>
-    <link rel="shortcut icon" href="http://zhouql.vip/images/心.png" type="image/x-icon">
+    <!-- 优化1：移除外部favicon，避免加载失败阻塞 -->
+    <!-- <link rel="shortcut icon" href="http://zhouql.vip/images/心.png" type="image/x-icon"> -->
     <style>
         html, body {
             height: 100%;
@@ -13,12 +13,10 @@
             margin: 0;
             background: #000;
             overflow: hidden;
-            /* 手机端优化：禁止文本选中 */
             -webkit-user-select: none;
             user-select: none;
         }
         
-        /* 星空背景样式 */
         #stars {
             position: fixed;
             top: 0;
@@ -29,7 +27,6 @@
             display: none;
         }
         
-        /* 口令验证界面样式 - 手机适配优化 */
         #password-overlay {
             position: fixed;
             top: 0;
@@ -44,7 +41,6 @@
             z-index: 1000;
             color: white;
             font-family: Arial, sans-serif;
-            /* 手机端优化：添加padding防止内容贴边 */
             padding: 20px;
             box-sizing: border-box;
         }
@@ -55,14 +51,12 @@
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
             text-align: center;
-            /* 手机端优化：调整宽度，最大宽度适配手机 */
             max-width: 350px;
             width: 100%;
             box-sizing: border-box;
         }
         
         .password-title {
-            /* 手机端优化：调整字体大小适配手机 */
             font-size: 24px;
             margin-bottom: 20px;
             color: pink;
@@ -77,12 +71,10 @@
             border-radius: 25px;
             background: rgba(255, 255, 255, 0.1);
             color: white;
-            /* 手机端优化：调整输入框字体大小 */
             font-size: 18px;
             text-align: center;
             outline: none;
             transition: all 0.3s;
-            /* 手机端优化：去除默认样式 */
             -webkit-appearance: none;
             appearance: none;
         }
@@ -97,14 +89,11 @@
             border: none;
             border-radius: 25px;
             color: white;
-            /* 手机端优化：调整按钮字体大小 */
             font-size: 18px;
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 10px;
-            /* 手机端优化：调整按钮宽度 */
             width: 90%;
-            /* 去除默认样式 */
             -webkit-appearance: none;
             appearance: none;
         }
@@ -114,7 +103,6 @@
             box-shadow: 0 0 15px rgba(255, 105, 180, 0.8);
         }
         
-        /* 手机端优化：添加按钮点击反馈 */
         .password-button:active {
             transform: scale(0.98);
         }
@@ -126,7 +114,6 @@
             display: none;
         }
         
-        /* 爱心动画样式 */
         #pinkboard {
             position: absolute;
             width: 100%;
@@ -135,7 +122,6 @@
             z-index: 1;
         }
         
-        /* 修复：移除冲突的p标签样式 */
         .heart-text {
             position: fixed;
             top: 50%;
@@ -145,7 +131,6 @@
             animation: k 1.5s ease-in-out infinite;
             display: none;
             z-index: 2;
-            /* 手机端优化：调整padding和字体大小 */
             padding: 150px 20px;
             margin: auto;
             font-size: 36px;
@@ -154,16 +139,13 @@
         
         @keyframes k {
             100% {
-                /* 手机端优化：调整动画后的字体大小 */
                 font-size: 20px;
                 opacity: 1;
             }
         }
         
-        /* 关键：祝福语容器 - 立体翻书效果（手机适配） */
         #wishContainer {
             position: fixed;
-            /* 手机端优化：调整位置，避免贴底 */
             top: 88%;
             left: 50%;
             transform: translateX(-50%);
@@ -172,17 +154,13 @@
             text-align: center;
             width: 100%;
             display: block !important;
-            /* 开启3D效果 */
             perspective: 1000px;
-            /* 固定高度，避免切换时抖动 */
             height: 40px;
             overflow: hidden;
-            /* 手机端优化：添加左右padding */
             padding: 0 10px;
             box-sizing: border-box;
         }
         
-        /* 翻书容器 - 承载动画 */
         .wish-book {
             position: relative;
             width: 100%;
@@ -196,7 +174,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* 手机端优化：调整祝福语字体大小 */
             font-size: 22px;
             font-weight: bold;
             font-family: "Microsoft Yahei", "SimHei", sans-serif;
@@ -207,48 +184,38 @@
             align-items: center;
             margin: 0;
             padding: 0;
-            /* 3D变换基础 */
             transform-origin: center bottom;
             transform-style: preserve-3d;
-            /* 默认显示正面 */
             transform: rotateX(0deg);
             opacity: 1;
-            /* 手机端优化：文本换行 */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         
-        /* 快速翻书动画 - 只在切换时执行 */
         .wish-item.flip {
             animation: quickPageFlip 0.2s ease-in-out forwards;
         }
         
-        /* 快速翻书：只保留翻转动画，完成后立即显示 */
         @keyframes quickPageFlip {
             0% {
-                /* 初始正面 */
                 transform: rotateX(0deg);
                 opacity: 1;
             }
             50% {
-                /* 翻到背面 */
                 transform: rotateX(90deg);
                 opacity: 0;
             }
             51% {
-                /* 新内容从背面开始 */
                 transform: rotateX(-90deg);
                 opacity: 0;
             }
             100% {
-                /* 快速翻回正面 */
                 transform: rotateX(0deg);
                 opacity: 1;
             }
         }
         
-        /* 抖动效果 */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -259,7 +226,6 @@
             animation: shake 0.5s;
         }
 
-        /* 媒体查询：针对小屏手机的精细化适配 */
         @media screen and (max-width: 375px) {
             .password-title {
                 font-size: 22px;
@@ -277,13 +243,30 @@
                 top: 90%;
             }
         }
+
+        /* 新增：加载中提示（手机端更友好） */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: pink;
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
-    <!-- 星空背景画布 -->
+    <!-- 新增：加载中提示 -->
+    <div id="loading">❤️ 加载中... ❤️</div>
+    
     <canvas id="stars"></canvas>
     
-    <!-- 口令验证界面 -->
     <div id="password-overlay">
         <div class="password-container">
             <h2 class="password-title">❤️ 爱心验证 ❤️</h2>
@@ -295,22 +278,23 @@
         </div>
     </div>
 
-    <!-- 爱心动画内容 -->
     <div class="heart-text"></div>
     <canvas id="pinkboard"></canvas>
     
-    <!-- 暖心祝福语容器 -->
     <div id="wishContainer">
         <div class="wish-book">
-            <!-- 初始显示第一条 -->
             <p class="wish-item">早点休息，别熬夜呀</p>
         </div>
     </div>
 
     <script>
-        // 等待页面完全加载
-        window.onload = function() {
-            // 核心元素获取
+        // 优化2：延迟初始化，等页面完全就绪（解决手机端JS执行时机问题）
+        document.addEventListener('DOMContentLoaded', function() {
+            // 隐藏加载提示，显示验证层
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+            }, 500);
+
             const overlay = document.getElementById('password-overlay');
             const passwordInput = document.getElementById('password-input');
             const passwordButton = document.getElementById('password-button');
@@ -321,26 +305,23 @@
             const wishContainer = document.getElementById('wishContainer');
             const wishBook = document.querySelector('.wish-book');
             
-            // 调试日志
             console.log('页面加载完成，元素获取成功');
             
-            // 口令验证逻辑
             function checkPassword() {
                 if (passwordInput.value === '3552256871') {
                     console.log('密码正确，显示爱心和祝福语');
                     
-                    // 隐藏验证界面
                     overlay.style.display = 'none';
-                    // 显示核心动画
                     canvas.style.display = 'block';
                     heartText.style.display = 'block';
                     starsCanvas.style.display = 'block';
                     
-                    // 初始化动画
-                    initHeartAnimation();
-                    initStars();
-                    // 启动祝福语
-                    startWarmWishes();
+                    // 优化3：动画初始化加延迟，给手机浏览器缓冲时间
+                    setTimeout(() => {
+                        initHeartAnimation();
+                        initStars();
+                        startWarmWishes();
+                    }, 300);
                 } else {
                     errorMessage.style.display = 'block';
                     passwordInput.value = '';
@@ -352,7 +333,6 @@
                 }
             }
             
-            // 绑定事件
             passwordButton.addEventListener('click', checkPassword);
             passwordInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -360,14 +340,16 @@
                 }
             });
             
-            // 初始聚焦
-            passwordInput.focus();
+            // 优化4：延迟聚焦，避免手机端输入法弹出异常
+            setTimeout(() => {
+                passwordInput.focus();
+            }, 100);
             
-            // 爱心动画代码（完全保留）
             function initHeartAnimation() {
                 var settings = {
                     particles: {
-                        length: 600,
+                        // 优化5：减少粒子数量，降低手机性能压力（从600→300，视觉效果不变）
+                        length: 300,
                         duration: 2,
                         velocity: 100,
                         effect: -0.75,
@@ -585,7 +567,6 @@
                 })(document.getElementById('pinkboard'));
             }
             
-            // 星空背景动画
             function initStars() {
                 const canvas = document.getElementById('stars');
                 const ctx = canvas.getContext('2d');
@@ -627,6 +608,7 @@
                     }
                 }
                 
+                // 优化6：减少星星数量，降低手机渲染压力（从300→150）
                 function createStars(count) {
                     for (let i = 0; i < count; i++) {
                         stars.push(new Star());
@@ -642,15 +624,13 @@
                     requestAnimationFrame(renderStars);
                 }
                 
-                createStars(300);
+                createStars(150);
                 renderStars();
             }
             
-            // 暖心祝福语功能 - 快速翻书+随机显示
             function startWarmWishes() {
                 console.log('启动暖心祝福语');
                 
-                // 50条温柔治愈的暖心文案
                 const warmWishes = [
                     "早点休息，别熬夜呀",
                     "爱自己是终身浪漫的开始",
@@ -705,29 +685,21 @@
                     "今天的你，也超棒的哦"
                 ];
                 
-                // 记录上一次的索引，避免连续显示同一条
                 let lastIndex = 0;
                 
-                // 切换祝福语的核心函数 - 随机选取+快速翻书
                 function switchWish() {
                     try {
-                        // 获取当前显示的元素
                         const currentItem = wishBook.querySelector('.wish-item');
-                        // 添加翻书动画类
                         currentItem.classList.add('flip');
                         
-                        // 生成随机索引（避免和上一次重复）
                         let randomIndex;
                         do {
                             randomIndex = Math.floor(Math.random() * warmWishes.length);
                         } while (randomIndex === lastIndex && warmWishes.length > 1);
                         lastIndex = randomIndex;
                         
-                        // 动画结束后更新内容（0.2秒后）
                         setTimeout(() => {
-                            // 更新为随机选中的文字内容
                             currentItem.textContent = warmWishes[randomIndex];
-                            // 移除动画类，回到正常显示状态
                             currentItem.classList.remove('flip');
                             
                             console.log('随机切换祝福语：', warmWishes[randomIndex]);
@@ -739,10 +711,9 @@
                     }
                 }
                 
-                // 2秒切换一次（0.2秒翻书动画 + 1.8秒完整显示）
                 setInterval(switchWish, 1300);
             }
-        };
+        });
     </script>
 </body>
 </html>
