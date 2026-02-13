@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爱心口令验证</title>
+    <link rel="shortcut icon" href="http://zhouql.vip/images/心.png" type="image/x-icon">
+    <style>
+        html, body {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        /* 星空背景样式 */
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            display: none;
+        }
+        
+        /* 口令验证界面样式 */
+        #password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        
+        .password-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+            text-align: center;
+            max-width: 400px;
+            width: 80%;
+        }
+        
+        .password-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: pink;
+            text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
+        }
+        
+        .password-input {
+            width: 80%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 2px solid pink;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .password-input:focus {
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.8);
+        }
+        
+        .password-button {
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #ff6b9d, #ff2995);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .password-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.8);
+        }
+        
+        .error-message {
+            color: #ff4d4d;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        /* 爱心动画样式 */
+        #pinkboard {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 1;
+        }
+        
+        /* 修复：移除冲突的p标签样式 */
+        .heart-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: pink;
+            animation: k 1.5s ease-in-out infinite;
+            display: none;
+            z-index: 2;
+            padding: 300px;
+            margin: auto;
+            font-size: 50px;
+        }
+        
+        @keyframes k {
+            100% {
+                font-size: 24px;
+                opacity: 1;
+            }
+        }
+        
+        /* 关键：祝福语容器 - 立体翻书效果 */
+        #wishContainer {
+            position: fixed;
+            top: 85%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            pointer-events: none;
+            text-align: center;
+            width: 100%;
+            display: block !important;
+            /* 开启3D效果 */
+            perspective: 1000px;
+            /* 固定高度，避免切换时抖动 */
+            height: 40px;
+            overflow: hidden;
+        }
+        
+        /* 翻书容器 - 承载动画 */
+        .wish-book {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+        
+        .wish-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: 28px;
+            font-weight: bold;
+            font-family: "Microsoft Yahei", "SimHei", sans-serif;
+            color: #ff99cc !important;
+            text-shadow: 0 0 5px #ff0080, 0 0 10px #ff0080, 0 0 15px #ff0080 !important;
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            /* 3D变换基础 */
+            transform-origin: center bottom;
+            transform-style: preserve-3d;
+            /* 默认显示正面 */
+            transform: rotateX(0deg);
+            opacity: 1;
+        }
+        
+        /* 快速翻书动画 - 只在切换时执行 */
+        .wish-item.flip {
+            animation: quickPageFlip 0.2s ease-in-out forwards;
+        }
+        
+        /* 快速翻书：只保留翻转动画，完成后立即显示 */
+        @keyframes quickPageFlip {
+            0% {
+                /* 初始正面 */
+                transform: rotateX(0deg);
+                opacity: 1;
+            }
+            50% {
+                /* 翻到背面 */
+                transform: rotateX(90deg);
+                opacity: 0;
+            }
+            51% {
+                /* 新内容从背面开始 */
+                transform: rotateX(-90deg);
+                opacity: 0;
+            }
+            100% {
+                /* 快速翻回正面 */
+                transform: rotateX(0deg);
+                opacity: 1;
+            }
+        }
+        
+        /* 抖动效果 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <!-- 星空背景画布 -->
+    <canvas id="stars"></canvas>
+    
+    <!-- 口令验证界面 -->
+    <div id="password-overlay">
+        <div class="password-container">
+            <h2 class="password-title">❤️ 爱心验证 ❤️</h2>
+            <p>请输入密码查看</p>
+            <input type="password" id="password-input" class="password-input" placeholder="请输入密码">
+            <br>
+            <button id="password-button" class="password-button">密码验证</button>
+            <p id="error-message" class="error-message">密码错误，请重新输入！</p>
+        </div>
+    </div>
+
+    <!-- 爱心动画内容 -->
+    <div class="heart-text"></div>
+    <canvas id="pinkboard"></canvas>
+    
+    <!-- 暖心祝福语容器 -->
+    <div id="wishContainer">
+        <div class="wish-book">
+            <!-- 初始显示第一条 -->
+            <p class="wish-item">早点休息，别熬夜呀</p>
+        </div>
+    </div>
+
+    <script>
+        // 等待页面完全加载
+        window.onload = function() {
+            // 核心元素获取
+            const overlay = document.getElementById('password-overlay');
+            const passwordInput = document.getElementById('password-input');
+            const passwordButton = document.getElementById('password-button');
+            const errorMessage = document.getElementById('error-message');
+            const canvas = document.getElementById('pinkboard');
+            const heartText = document.querySelector('.heart-text');
+            const starsCanvas = document.getElementById('stars');
+            const wishContainer = document.getElementById('wishContainer');
+            const wishBook = document.querySelector('.wish-book');
+            
+            // 调试日志
+            console.log('页面加载完成，元素获取成功');
+            
+            // 口令验证逻辑
+            function checkPassword() {
+                if (passwordInput.value === '3552256871') {
+                    console.log('密码正确，显示爱心和祝福语');
+                    
+                    // 隐藏验证界面
+                    overlay.style.display = 'none';
+                    // 显示核心动画
+                    canvas.style.display = 'block';
+                    heartText.style.display = 'block';
+                    starsCanvas.style.display = 'block';
+                    
+                    // 初始化动画
+                    initHeartAnimation();
+                    initStars();
+                    // 启动祝福语
+                    startWarmWishes();
+                } else {
+                    errorMessage.style.display = 'block';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                    passwordInput.classList.add('shake');
+                    setTimeout(() => {
+                        passwordInput.classList.remove('shake');
+                    }, 500);
+                }
+            }
+            
+            // 绑定事件
+            passwordButton.addEventListener('click', checkPassword);
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+            
+            // 初始聚焦
+            passwordInput.focus();
+            
+            // 爱心动画代码（完全保留）
+            function initHeartAnimation() {
+                var settings = {
+                    particles: {
+                        length: 600,
+                        duration: 2,
+                        velocity: 100,
+                        effect: -0.75,
+                        size: 32,
+                    },
+                };
+                
+                (function () { 
+                    var b = 0; 
+                    var c = ["ms", "moz", "webkit", "o"]; 
+                    for (var a = 0; a < c.length && !window.requestAnimationFrame; ++a) { 
+                        window.requestAnimationFrame = window[c[a] + "RequestAnimationFrame"]; 
+                        window.cancelAnimationFrame = window[c[a] + "CancelAnimationFrame"] || window[c[a] + "CancelRequestAnimationFrame"]; 
+                    } 
+                    if (!window.requestAnimationFrame) { 
+                        window.requestAnimationFrame = function (h, e) { 
+                            var d = new Date().getTime(); 
+                            var f = Math.max(0, 16 - (d - b)); 
+                            var g = window.setTimeout(function () { h(d + f) }, f); 
+                            b = d + f; 
+                            return g; 
+                        }; 
+                    } 
+                    if (!window.cancelAnimationFrame) { 
+                        window.cancelAnimationFrame = function (d) { 
+                            clearTimeout(d); 
+                        }; 
+                    } 
+                })();
+
+                var Point = (function () {
+                    function Point(x, y) {
+                        this.x = (typeof x !== 'undefined') ? x : 0;
+                        this.y = (typeof y !== 'undefined') ? y : 0;
+                    }
+                    Point.prototype.clone = function () {
+                        return new Point(this.x, this.y);
+                    };
+                    Point.prototype.length = function (length) {
+                        if (typeof length == 'undefined')
+                            return Math.sqrt(this.x * this.x + this.y * this.y);
+                        this.normalize();
+                        this.x *= length;
+                        this.y *= length;
+                        return this;
+                    };
+                    Point.prototype.normalize = function () {
+                        var length = this.length();
+                        this.x /= length;
+                        this.y /= length;
+                        return this;
+                    };
+                    return Point;
+                })();
+                
+                var Particle = (function () {
+                    function Particle() {
+                        this.position = new Point();
+                        this.velocity = new Point();
+                        this.acceleration = new Point();
+                        this.age = 0;
+                    }
+                    Particle.prototype.initialize = function (x, y, dx, dy) {
+                        this.position.x = x;
+                        this.position.y = y;
+                        this.velocity.x = dx;
+                        this.velocity.y = dy;
+                        this.acceleration.x = dx * settings.particles.effect;
+                        this.acceleration.y = dy * settings.particles.effect;
+                        this.age = 0;
+                    };
+                    Particle.prototype.update = function (deltaTime) {
+                        this.position.x += this.velocity.x * deltaTime;
+                        this.position.y += this.velocity.y * deltaTime;
+                        this.velocity.x += this.acceleration.x * deltaTime;
+                        this.velocity.y += this.acceleration.y * deltaTime;
+                        this.age += deltaTime;
+                    };
+                    Particle.prototype.draw = function (context, image) {
+                        function ease(t) {
+                            return (--t) * t * t + 1;
+                        }
+                        var size = image.width * ease(this.age / settings.particles.duration);
+                        context.globalAlpha = 1 - this.age / settings.particles.duration;
+                        context.drawImage(image, this.position.x - size / 2, this.position.y - size / 2, size, size);
+                    };
+                    return Particle;
+                })();
+                
+                var ParticlePool = (function () {
+                    var particles,
+                        firstActive = 0,
+                        firstFree = 0,
+                        duration = settings.particles.duration;
+                        
+                    function ParticlePool(length) {
+                        particles = new Array(length);
+                        for (var i = 0; i < particles.length; i++)
+                            particles[i] = new Particle();
+                    }
+                    
+                    ParticlePool.prototype.add = function (x, y, dx, dy) {
+                        particles[firstFree].initialize(x, y, dx, dy);
+                        firstFree++;
+                        if (firstFree == particles.length) firstFree = 0;
+                        if (firstActive == firstFree) firstActive++;
+                        if (firstActive == particles.length) firstActive = 0;
+                    };
+                    
+                    ParticlePool.prototype.update = function (deltaTime) {
+                        var i;
+                        if (firstActive < firstFree) {
+                            for (i = firstActive; i < firstFree; i++)
+                                particles[i].update(deltaTime);
+                        }
+                        if (firstFree < firstActive) {
+                            for (i = firstActive; i < particles.length; i++)
+                                particles[i].update(deltaTime);
+                            for (i = 0; i < firstFree; i++)
+                                particles[i].update(deltaTime);
+                        }
+                        while (particles[firstActive].age >= duration && firstActive != firstFree) {
+                            firstActive++;
+                            if (firstActive == particles.length) firstActive = 0;
+                        }
+                    };
+                    
+                    ParticlePool.prototype.draw = function (context, image) {
+                        if (firstActive < firstFree) {
+                            for (i = firstActive; i < firstFree; i++)
+                                particles[i].draw(context, image);
+                        }
+                        if (firstFree < firstActive) {
+                            for (i = firstActive; i < particles.length; i++)
+                                particles[i].draw(context, image);
+                            for (i = 0; i < firstFree; i++)
+                                particles[i].draw(context, image);
+                        }
+                    };
+                    
+                    return ParticlePool;
+                })();
+                
+                (function (canvas) {
+                    var context = canvas.getContext('2d'),
+                        particles = new ParticlePool(settings.particles.length),
+                        particleRate = settings.particles.length / settings.particles.duration,
+                        time;
+                        
+                    function pointOnHeart(t) {
+                        return new Point(
+                            160 * Math.pow(Math.sin(t), 3),
+                            130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+                        );
+                    }
+                    
+                    var image = (function () {
+                        var canvas = document.createElement('canvas'),
+                            context = canvas.getContext('2d');
+                        canvas.width = settings.particles.size;
+                        canvas.height = settings.particles.size;
+                        
+                        function to(t) {
+                            var point = pointOnHeart(t);
+                            point.x = settings.particles.size / 2 + point.x * settings.particles.size / 350;
+                            point.y = settings.particles.size / 2 - point.y * settings.particles.size / 350;
+                            return point;
+                        }
+                        
+                        context.beginPath();
+                        var t = -Math.PI;
+                        var point = to(t);
+                        context.moveTo(point.x, point.y);
+                        while (t < Math.PI) {
+                            t += 0.01;
+                            point = to(t);
+                            context.lineTo(point.x, point.y);
+                        }
+                        context.closePath();
+                        context.fillStyle = '#ea80b0';
+                        context.fill();
+                        
+                        var image = new Image();
+                        image.src = canvas.toDataURL();
+                        return image;
+                    })();
+                    
+                    function render() {
+                        requestAnimationFrame(render);
+                        var newTime = new Date().getTime() / 1000,
+                            deltaTime = newTime - (time || newTime);
+                        time = newTime;
+                        
+                        context.clearRect(0, 0, canvas.width, canvas.height);
+                        var amount = particleRate * deltaTime;
+                        for (var i = 0; i < amount; i++) {
+                            var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+                            var dir = pos.clone().length(settings.particles.velocity);
+                            particles.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
+                        }
+                        particles.update(deltaTime);
+                        particles.draw(context, image);
+                    }
+                    
+                    function onResize() {
+                        canvas.width = canvas.clientWidth;
+                        canvas.height = canvas.clientHeight;
+                    }
+                    
+                    window.onresize = onResize;
+                    setTimeout(function () {
+                        onResize();
+                        render();
+                    }, 10);
+                })(document.getElementById('pinkboard'));
+            }
+            
+            // 星空背景动画
+            function initStars() {
+                const canvas = document.getElementById('stars');
+                const ctx = canvas.getContext('2d');
+                let stars = [];
+                let width, height;
+                
+                function resize() {
+                    width = window.innerWidth;
+                    height = window.innerHeight;
+                    canvas.width = width;
+                    canvas.height = height;
+                }
+                
+                resize();
+                window.addEventListener('resize', resize);
+                
+                class Star {
+                    constructor() {
+                        this.x = Math.random() * width;
+                        this.y = Math.random() * height;
+                        this.size = Math.random() * 1.5 + 0.5;
+                        this.speed = Math.random() * 0.2 + 0.1;
+                        this.alpha = Math.random() * 0.8 + 0.2;
+                    }
+                    
+                    update() {
+                        this.y += this.speed;
+                        if (this.y > height) {
+                            this.y = 0;
+                            this.x = Math.random() * width;
+                        }
+                    }
+                    
+                    draw() {
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                        ctx.fill();
+                    }
+                }
+                
+                function createStars(count) {
+                    for (let i = 0; i < count; i++) {
+                        stars.push(new Star());
+                    }
+                }
+                
+                function renderStars() {
+                    ctx.clearRect(0, 0, width, height);
+                    stars.forEach(star => {
+                        star.update();
+                        star.draw();
+                    });
+                    requestAnimationFrame(renderStars);
+                }
+                
+                createStars(300);
+                renderStars();
+            }
+            
+            // 暖心祝福语功能 - 快速翻书+随机显示
+            function startWarmWishes() {
+                console.log('启动暖心祝福语');
+                
+                // 50条温柔治愈的暖心文案
+                const warmWishes = [
+                    "早点休息，别熬夜呀",
+                    "爱自己是终身浪漫的开始",
+                    "保持好心情，万事皆顺意",
+                    "珍惜每一刻，活在当下",
+                    "顺顺利利，平安喜乐",
+                    "梦想成真，未来可期",
+                    "要相信自己哦，你超棒的",
+                    "慢慢来，一切都会好的",
+                    "你值得所有的美好与温柔",
+                    "今天也要元气满满呀",
+                    "别焦虑，日子总会发光的",
+                    "做自己就好，不必迎合任何人",
+                    "生活有点甜，烦恼少一点",
+                    "累了就歇会儿，不用一直赶路",
+                    "你的努力，时光都会记得",
+                    "愿你被温柔以待，不负韶华",
+                    "开心最重要，其他都是浮云",
+                    "小小的美好，藏在日常里",
+                    "别否定自己，你真的很优秀",
+                    "慢慢来，会变好的，会如愿的",
+                    "好好吃饭，好好生活，好好爱自己",
+                    "把烦恼丢掉，腾出地方装鲜花",
+                    "今天的风很温柔，你也是",
+                    "不慌不忙，慢慢长大",
+                    "平凡的日子，也值得用心过",
+                    "你笑起来的样子，真的很好看",
+                    "别难过，总会有不期而遇的温暖",
+                    "生活虽苦，但你可以甜",
+                    "一步一个脚印，慢慢来就好",
+                    "允许自己偶尔偷懒，没关系的",
+                    "你不是孤单一人，有人在偷偷爱着你",
+                    "日子平淡，好在我喜欢",
+                    "别将就，要找一个满眼都是你的人",
+                    "努力的意义，是让自己有更多选择",
+                    "愿你眼里有光，心中有爱，脚下有路",
+                    "不用急着发光，先成为自己的太阳",
+                    "简单点，糊涂点，开心点",
+                    "生活的美好，在于不期而遇的惊喜",
+                    "做个温柔的人，不慌不忙，不急不躁",
+                    "你值得被世界温柔以待",
+                    "别想太多，好好生活，日子会慢慢变好",
+                    "偶尔摆烂，也是生活的调味剂",
+                    "愿你永远保持童心，永远热爱生活",
+                    "别怕失去，别怕遗憾，别怕前路漫漫",
+                    "用心感受生活，处处都是温柔",
+                    "你不必完美，做真实的自己就好",
+                    "慢一点也没关系，只要在往前走就好",
+                    "生活是自己的，怎么舒服怎么来",
+                    "愿你岁岁年年，平安喜乐",
+                    "把期待降低，把依赖减少，你会过得很好",
+                    "今天的你，也超棒的哦"
+                ];
+                
+                // 记录上一次的索引，避免连续显示同一条
+                let lastIndex = 0;
+                
+                // 切换祝福语的核心函数 - 随机选取+快速翻书
+                function switchWish() {
+                    try {
+                        // 获取当前显示的元素
+                        const currentItem = wishBook.querySelector('.wish-item');
+                        // 添加翻书动画类
+                        currentItem.classList.add('flip');
+                        
+                        // 生成随机索引（避免和上一次重复）
+                        let randomIndex;
+                        do {
+                            randomIndex = Math.floor(Math.random() * warmWishes.length);
+                        } while (randomIndex === lastIndex && warmWishes.length > 1);
+                        lastIndex = randomIndex;
+                        
+                        // 动画结束后更新内容（0.2秒后）
+                        setTimeout(() => {
+                            // 更新为随机选中的文字内容
+                            currentItem.textContent = warmWishes[randomIndex];
+                            // 移除动画类，回到正常显示状态
+                            currentItem.classList.remove('flip');
+                            
+                            console.log('随机切换祝福语：', warmWishes[randomIndex]);
+                            
+                        }, 200);
+                        
+                    } catch (e) {
+                        console.error('切换祝福语出错：', e);
+                    }
+                }
+                
+                // 2秒切换一次（0.2秒翻书动画 + 1.8秒完整显示）
+                setInterval(switchWish, 1300);
+            }
+        };
+    </script>
+</body>
+</html>
