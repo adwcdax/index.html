@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 核心适配：优化viewport，添加user-scalable=no防止缩放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>爱心口令验证</title>
     <link rel="shortcut icon" href="http://zhouql.vip/images/心.png" type="image/x-icon">
     <style>
@@ -12,6 +13,9 @@
             margin: 0;
             background: #000;
             overflow: hidden;
+            /* 手机端优化：禁止文本选中 */
+            -webkit-user-select: none;
+            user-select: none;
         }
         
         /* 星空背景样式 */
@@ -25,7 +29,7 @@
             display: none;
         }
         
-        /* 口令验证界面样式 */
+        /* 口令验证界面样式 - 手机适配优化 */
         #password-overlay {
             position: fixed;
             top: 0;
@@ -40,37 +44,47 @@
             z-index: 1000;
             color: white;
             font-family: Arial, sans-serif;
+            /* 手机端优化：添加padding防止内容贴边 */
+            padding: 20px;
+            box-sizing: border-box;
         }
         
         .password-container {
             background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
+            padding: 30px 20px;
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
             text-align: center;
-            max-width: 400px;
-            width: 80%;
+            /* 手机端优化：调整宽度，最大宽度适配手机 */
+            max-width: 350px;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .password-title {
-            font-size: 28px;
+            /* 手机端优化：调整字体大小适配手机 */
+            font-size: 24px;
             margin-bottom: 20px;
             color: pink;
             text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
         }
         
         .password-input {
-            width: 80%;
-            padding: 12px;
+            width: 90%;
+            padding: 15px 12px;
             margin: 15px 0;
             border: 2px solid pink;
             border-radius: 25px;
             background: rgba(255, 255, 255, 0.1);
             color: white;
-            font-size: 16px;
+            /* 手机端优化：调整输入框字体大小 */
+            font-size: 18px;
             text-align: center;
             outline: none;
             transition: all 0.3s;
+            /* 手机端优化：去除默认样式 */
+            -webkit-appearance: none;
+            appearance: none;
         }
         
         .password-input:focus {
@@ -78,20 +92,31 @@
         }
         
         .password-button {
-            padding: 12px 30px;
+            padding: 15px 30px;
             background: linear-gradient(45deg, #ff6b9d, #ff2995);
             border: none;
             border-radius: 25px;
             color: white;
-            font-size: 16px;
+            /* 手机端优化：调整按钮字体大小 */
+            font-size: 18px;
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 10px;
+            /* 手机端优化：调整按钮宽度 */
+            width: 90%;
+            /* 去除默认样式 */
+            -webkit-appearance: none;
+            appearance: none;
         }
         
         .password-button:hover {
             transform: scale(1.05);
             box-shadow: 0 0 15px rgba(255, 105, 180, 0.8);
+        }
+        
+        /* 手机端优化：添加按钮点击反馈 */
+        .password-button:active {
+            transform: scale(0.98);
         }
         
         .error-message {
@@ -120,22 +145,26 @@
             animation: k 1.5s ease-in-out infinite;
             display: none;
             z-index: 2;
-            padding: 300px;
+            /* 手机端优化：调整padding和字体大小 */
+            padding: 150px 20px;
             margin: auto;
-            font-size: 50px;
+            font-size: 36px;
+            text-align: center;
         }
         
         @keyframes k {
             100% {
-                font-size: 24px;
+                /* 手机端优化：调整动画后的字体大小 */
+                font-size: 20px;
                 opacity: 1;
             }
         }
         
-        /* 关键：祝福语容器 - 立体翻书效果 */
+        /* 关键：祝福语容器 - 立体翻书效果（手机适配） */
         #wishContainer {
             position: fixed;
-            top: 85%;
+            /* 手机端优化：调整位置，避免贴底 */
+            top: 88%;
             left: 50%;
             transform: translateX(-50%);
             z-index: 999;
@@ -148,6 +177,9 @@
             /* 固定高度，避免切换时抖动 */
             height: 40px;
             overflow: hidden;
+            /* 手机端优化：添加左右padding */
+            padding: 0 10px;
+            box-sizing: border-box;
         }
         
         /* 翻书容器 - 承载动画 */
@@ -164,7 +196,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            font-size: 28px;
+            /* 手机端优化：调整祝福语字体大小 */
+            font-size: 22px;
             font-weight: bold;
             font-family: "Microsoft Yahei", "SimHei", sans-serif;
             color: #ff99cc !important;
@@ -180,6 +213,10 @@
             /* 默认显示正面 */
             transform: rotateX(0deg);
             opacity: 1;
+            /* 手机端优化：文本换行 */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         /* 快速翻书动画 - 只在切换时执行 */
@@ -220,6 +257,25 @@
         }
         .shake {
             animation: shake 0.5s;
+        }
+
+        /* 媒体查询：针对小屏手机的精细化适配 */
+        @media screen and (max-width: 375px) {
+            .password-title {
+                font-size: 22px;
+            }
+            .password-input, .password-button {
+                font-size: 16px;
+            }
+            .heart-text {
+                font-size: 30px;
+            }
+            .wish-item {
+                font-size: 20px;
+            }
+            #wishContainer {
+                top: 90%;
+            }
         }
     </style>
 </head>
